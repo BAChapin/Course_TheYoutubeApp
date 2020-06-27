@@ -1,5 +1,6 @@
 package com.example.youtubeplayer
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
@@ -15,6 +16,9 @@ const val YOUTUBE_PLAYLIST = "PLACHuve7G7UpcGyhJIZNWteApl3vqymNu"
 
 class YoutubeActivity : YouTubeBaseActivity(), YouTubePlayer.OnInitializedListener {
     private val TAG = "YoutubeActivity"
+    private val DIALOG_REQUEST_CODE = 1
+
+    val playerView by lazy { YouTubePlayerView(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +26,6 @@ class YoutubeActivity : YouTubeBaseActivity(), YouTubePlayer.OnInitializedListen
         val layout = layoutInflater.inflate(R.layout.activity_youtube, null) as ConstraintLayout
         setContentView(layout)
 
-        val playerView = YouTubePlayerView(this)
         playerView.layoutParams = ConstraintLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         layout.addView(playerView)
 
@@ -52,10 +55,9 @@ class YoutubeActivity : YouTubeBaseActivity(), YouTubePlayer.OnInitializedListen
         provider: YouTubePlayer.Provider?,
         youTubeInitializationResult: YouTubeInitializationResult?
     ) {
-        val REQUEST_RESULT = 0
 
         if (youTubeInitializationResult?.isUserRecoverableError == true) {
-            youTubeInitializationResult?.getErrorDialog(this, REQUEST_RESULT).show()
+            youTubeInitializationResult?.getErrorDialog(this, DIALOG_REQUEST_CODE).show()
         } else {
             val errorMessage = "There was an error initializing the YoutubePlayer ($youTubeInitializationResult)"
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
@@ -105,5 +107,16 @@ class YoutubeActivity : YouTubeBaseActivity(), YouTubePlayer.OnInitializedListen
         override fun onError(p0: YouTubePlayer.ErrorReason?) {
         }
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d(TAG, "onActivityResult called with response code $resultCode for request $requestCode")
+
+        if (requestCode == DIALOG_REQUEST_CODE) {
+            Log.d(TAG, intent.toString())
+            Log.d(TAG, intent.extras.toString())
+
+            playerView.initialize(getString(R.string.GOOGLE_API_KEY), this)
+        }
     }
 }
